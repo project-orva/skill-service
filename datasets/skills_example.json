@@ -1,0 +1,40 @@
+{
+    "skills": [
+        {
+            "id": 0,
+            "name": "light service",
+            "requests": [
+                {
+                    "e": "turn off the light",
+                    "pos": "VB,PRT,DT,NN"
+                },
+                {
+                    "e": "turn on the light",
+                    "pos": "NN,IN,DT,NN"
+                },
+                {
+                    "e": "change light color",
+                    "pos": "NN,NN,NN"
+                }
+            ]
+        },
+        {
+            "id": 1,
+            "name": "computer service",
+            "requests": [
+                {
+                    "e": "turn off the computer",
+                    "pos": "VB,PRT,DT,NN"
+                },
+                {
+                    "e": "turn on the computer",
+                    "pos": "NN,IN,DT,NN"
+                },
+                {
+                    "e": "navigate to google chrome",
+                    "pos": "VB,TO,VB,NN"
+                }
+            ]
+        }
+    ]
+}
