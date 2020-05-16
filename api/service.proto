@@ -10,7 +10,7 @@ service grpcSkill {
 message SkillDeterminationResponse {
     float Accuracy = 1;
     float Duration = 2;
-    string FowardAddress = 3;
+    string ForwardAddress = 3;
 }
  
 message SkillDeterminationRequest {
