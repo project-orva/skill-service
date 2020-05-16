@@ -20,6 +20,7 @@ export interface DictionaryApi {
 export interface ResolverValueSet {
     plainWords: Array<string>,
     pos: Array<string>,
+    features: Array<string>,
 }
 
 export interface ResolverContext {
