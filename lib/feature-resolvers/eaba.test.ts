@@ -12,6 +12,9 @@ const mock = {
 
 describe('eaba', () => {
     it('should return confidence provided a valid ctx', () => {
-        expect(eaba(mock as ResolverContext)).toEqual({})
+        expect(eaba(mock as ResolverContext)).toEqual({
+            confidence: 1,
+            sum: 80,
+        })
     })
 })

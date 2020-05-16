@@ -35,6 +35,7 @@
   "dependencies": {
     "@grpc/proto-loader": "^0.5.4",
     "grpc": "^1.24.2",
+    "pos": "^0.4.2",
     "ts-node-dev": "^1.0.0-pre.44"
   }
 }
