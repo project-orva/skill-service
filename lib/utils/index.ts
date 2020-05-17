@@ -5,3 +5,5 @@ export {
 } from './determine-functional-label';
 export { default as generateRpc } from './generate-rpc';
 export { default as lazyTruth } from './lazy-truth';
+export { default as extractFeatures} from './extract-features';
+export { default as average } from './get-average';

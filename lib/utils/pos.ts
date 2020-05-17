@@ -22,4 +22,4 @@ export const createPOSMapping = (text: string): {
   }
 
   return { pos, plainWords };
-};
+}

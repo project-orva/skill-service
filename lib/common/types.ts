@@ -1,6 +1,17 @@
 export interface ConfidenceResponse {
     sum: number,
-    confidence: number
+    confidence: number,
+    group: string | number,
+}
+
+export interface ResolvedConfidence {
+    score: number,
+    confidence: number,
+    groupBestFit: string,
+}
+
+export interface ProcessedSkill extends ResolvedConfidence {
+    id: string,
 }
 
 export interface Config {
@@ -18,6 +29,7 @@ export interface DictionaryApi {
 }
 
 export interface ResolverValueSet {
+    group: string | undefined,
     plainWords: Array<string>,
     pos: Array<string>,
     features: Array<string>,
@@ -27,4 +39,8 @@ export interface ResolverContext {
     dictionaryApi: DictionaryApi,
     exampleSet: ResolverValueSet,
     comparerSet: ResolverValueSet,
+}
+
+export interface ResolvedEpisode extends ResolvedConfidence {
+    setId: string,
 }

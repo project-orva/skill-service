@@ -1,38 +1,48 @@
 {
     "skills": [
         {
-            "id": 0,
-            "name": "light service",
-            "requests": [
+            "id": "0",
+            "examples": [
                 {
-                    "e": "turn off the light",
-                    "pos": "VB,PRT,DT,NN"
+                    "group": "0",
+                    "plainWords": ["turn", "off", "the", "light"],
+                    "pos": ["VB","IN","DT","NN"],
+                    "features": ["off", "light"]
                 },
                 {
-                    "e": "turn on the light",
-                    "pos": "NN,IN,DT,NN"
+                    "group": "1",
+                    "plainWords": ["turn", "on", "the", "light"],
+                    "pos": ["NN","IN","DT","NN"],
+                    "features": ["on", "light"]
                 },
                 {
-                    "e": "change light color",
-                    "pos": "NN,NN,NN"
+                    "group": "2",
+                    "plainWords": ["change", "light", "color"],
+                    "pos": ["NN", "NN", "NN"],
+                    "features": ["change", "light", "color"]
                 }
             ]
         },
         {
-            "id": 1,
-            "name": "computer service",
-            "requests": [
+            "id": "1",
+            "examples": [
                 {
-                    "e": "turn off the computer",
-                    "pos": "VB,PRT,DT,NN"
+                    "group": "0",
+                    "plainWords": ["turn","off", "the", "computer"],
+                    "pos": ["VB","IN","DT", "NN"],
+                    "features": ["off", "computer"]
                 },
                 {
-                    "e": "turn on the computer",
-                    "pos": "NN,IN,DT,NN"
+                    "group": "1",
+                    "plainWords": ["turn", "on", "the", "computer"],
+                    "pos": ["NN","IN","DT","NN"],
+                    "features": ["on", "computer"]
                 },
                 {
-                    "e": "navigate to google chrome",
-                    "pos": "VB,TO,VB,NN"
+                    "group": "2",
+                    "plainWords": ["navigate", "to", "google", "chrome"],
+                    "pos": ["VB","TO","VB","NN"],
+                    "features": ["navigate", "google"]
                 }
             ]
         }

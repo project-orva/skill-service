@@ -5,10 +5,11 @@ export const convertToFL = (tag: string): string | undefined => {
         'NN': 'noun',
         'VB': 'verb',
         'JJ': 'adjective',
+        'IN': 'preposition',
     })
 
     const flPrefix: string = tag.slice(0, 2)
-    return lazyTruth(fls, (fl: string) => fl === flPrefix)
+    return lazyTruth<string>(fls, (fl: string) => fl === flPrefix)
 };
 
 export default (

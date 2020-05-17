@@ -7,16 +7,32 @@ import {
 const scoreResolvers = async (
     resolvers: Array<Resolver>,
     { exampleSet, comparerSet }:
-    { exampleSet: ResolverValueSet, comparerSet: ResolverValueSet },
-) => await Promise.all(resolvers
-    .map(async (resolver) => await resolver({
-        exampleSet,
-        comparerSet,
-    } as ResolverContext)));
+        { exampleSet: ResolverValueSet, comparerSet: ResolverValueSet },
+): Promise<Array<ConfidenceResponse>> => await Promise.all(resolvers
+    .map(async (resolver) => {
+        const { confidence, sum } = await resolver({
+            exampleSet,
+            comparerSet,
+        } as ResolverContext);
 
-type Resolver = (ctx: ResolverContext) => ConfidenceResponse;
+        return {
+            sum,
+            confidence,
+            group: exampleSet.group,
+        }
+    }));
 
-export default (resolvers: Array<Resolver>) => (
+type Resolver = (ctx: ResolverContext) => Promise<ConfidenceResponse>;
+type ResolverCb = (
     exampleSet: ResolverValueSet,
     comparerSet: ResolverValueSet,
-) => scoreResolvers(resolvers, { exampleSet, comparerSet })
+) => Promise<ConfidenceResponse[]>
+
+export default (resolvers: Array<Resolver>):
+    ResolverCb => (
+        exampleSet: ResolverValueSet,
+        comparerSet: ResolverValueSet,
+    ): Promise<Array<ConfidenceResponse>> => scoreResolvers(
+        resolvers,
+        { exampleSet, comparerSet },
+    )
