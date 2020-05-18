@@ -4,6 +4,7 @@ import GenerateRPC, { Rpc, RpcConfig } from './lib/utils/generate-rpc';
 
 import DetermineSkill from './lib/rpcs/determine-skill';
 import RegisterCurrentInstance from './lib/rpcs/register-current-instance';
+import RpcHandler from './lib/utils/rpc-handler';
 
 const PROTO_PATH = __dirname + '/api/service.proto';
 
@@ -14,8 +15,8 @@ const rpc: Rpc = GenerateRPC({
 function getServer() {
     const server = new grpc.Server();
     server.addService(rpc.serviceGuide.service, {
-        determineSkillFromMessage: DetermineSkill,
-        registerCurrentInstance: RegisterCurrentInstance,
+        determineSkillFromMessage: RpcHandler(DetermineSkill),
+        registerCurrentInstance: RpcHandler(RegisterCurrentInstance),
     });
 
     return server;

@@ -6,12 +6,13 @@ import {
     ResolvedConfidence,
     ResolvedEpisode,
     ConfidenceResponse,
-    BestFit,
 } from '../common/types';
 import { extractFeatures, average } from '../utils';
 import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
+
+import dataset from '../../datasets/skills_example.json'; // @@ remove when done
 
 const resolver = featureResolver([eaba]);
 
@@ -122,14 +123,16 @@ export const findBestFit = async (
     return globalBest;
 }
 
-const fetchMore = (offset: number): Skill => {
-    return {} as Skill
-}
+const fetchMore = async (offset: number):
+ Promise<Array<Skill>> => dataset.skills;
 
-export default async (call: any, cb: any): Promise<void> => {
-    // @@ make api call.
-    // const d = await findBestFit(fetchMore, 2, call.request.Message as string)
-
-    console.log('determine skill called')
-    call.end();
+export default async (request: any): Promise<any> => {
+    console.log('request', request)
+    const d = await findBestFit(fetchMore, 2, request.Message as string)
+    console.log('best fit!', d);
+    return ({
+        Accuracy: 1.2,
+        Duration: 1.2,
+        ForwardAddress: 'http://site.com',
+    });
 }

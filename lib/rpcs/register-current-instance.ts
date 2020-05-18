@@ -1,5 +1,5 @@
-export default (call: any, callback: any): void => {
-    console.log('register current called!')
-
-    call.end();
+export default (request: any): Promise<any> => {
+    return new Promise((res, rej) => {
+        res('bla')
+    })
 }
