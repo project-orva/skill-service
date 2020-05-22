@@ -4,6 +4,7 @@
             "id": "0",
             "examples": [
                 {
+    
                     "group": "0",
                     "plainWords": ["turn", "off", "the", "light"],
                     "pos": ["VB","IN","DT","NN"],

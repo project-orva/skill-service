@@ -19,12 +19,14 @@ message SkillDeterminationRequest {
 
 message SkillInfo {
     string ExampleText = 1;
-    string POSMapping = 2;
+    string GroupID = 2;
 }
 
 message RegisterRequest {
-    repeated SkillInfo ExampleInfo = 1; 
-    string SkillName = 2;
+    string SkillName = 1;
+    repeated SkillInfo Examples = 2; 
+    string ForwardAddress = 3;
+    int32 ForwardType = 4;
 }
 
 message RegisterResponse {

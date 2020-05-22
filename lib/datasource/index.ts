@@ -1,13 +1,4 @@
-import { Client } from 'pg';
+import * as exampleQueries from './example-queries';
+import * as skillQueries from './skill-queries';
 
-/*
-user: 'dbuser',
-host: 'database.server.com',
-database: 'mydb',
-password: 'secretpassword',
-port: 3211,
-*/
-
-export default (): any => {
-    return new Client();
-}
+export { exampleQueries, skillQueries };

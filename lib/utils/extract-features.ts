@@ -1,4 +1,3 @@
-import { ResolverValueSet } from '../common/types';
 import { convertToFL } from '../utils/determine-functional-label';
 import { lazyTruth } from '../utils';
 
