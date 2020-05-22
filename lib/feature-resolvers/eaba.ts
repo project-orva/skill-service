@@ -10,4 +10,4 @@ export default async (ctx: ResolverContext):
     Promise<ConfidenceResponse> => calcConfidence(
         ctx.comparerSet.features.filter(
             feature => ctx.exampleSet.features.includes(feature),
-        ).map(f => config.maxScore), config.maxScore);
+        ).map(_ => 80), 80);

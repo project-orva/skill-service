@@ -41,7 +41,7 @@ export const createTable = async (): Promise<any> => baseQuery(
 export const selectExampleById = async (
     variables: any,
 ): Promise<any> => baseQuery(
-    `SELECT GROUP, PLAIN_WORDS, POS, FEATURES
-        WHERE ID='${variables.id}' from EXAMPLE
+    `SELECT SKILL_ID, SUBSET_ID, PLAIN_WORDS, POS, FEATURES
+        FROM EXAMPLE WHERE SKILL_ID='${variables.id}'
     `,
 );

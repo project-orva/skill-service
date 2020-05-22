@@ -11,8 +11,18 @@ import { extractFeatures, average } from '../utils';
 import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
+import { skillQueries, exampleQueries } from '../datasource';
 
-import dataset from '../../datasets/skills_example.json'; // @@ remove when done
+interface DetermineSkillRequest {
+    Message: string,
+}
+
+interface DetermineSkillResponse {
+    Accuracy: number,
+    Duration: number,
+    ForwardAddress: string,
+    SubsetID: string,
+}
 
 const resolver = featureResolver([eaba]);
 
@@ -66,7 +76,7 @@ export const bestGroup = (scores: Array<ConfidenceResponse>) => scores.reduce(
         }
 
         return a
-    }, { sum: 0, confidence: 0} as ConfidenceResponse).group;
+    }, { sum: 0, confidence: 0 } as ConfidenceResponse).group;
 
 const isScoredHigher = (
     base: ResolvedEpisode, comparer: ResolvedEpisode,
@@ -104,6 +114,8 @@ export const findBestFit = async (
             }),
         );
 
+        console.log('resolved requests', resolvedRequests)
+
         // determine the best fit of the episode
         const episodeBest: ResolvedEpisode = resolvedRequests.reduce((
             a: ResolvedEpisode, set: ResolvedEpisode,
@@ -112,7 +124,7 @@ export const findBestFit = async (
                 ? set
                 : a;
         }, { confidence: 0, score: 0 } as ResolvedEpisode);
-
+        console.log('compare!', globalBest, episodeBest)
         if (isScoredHigher(globalBest, episodeBest)) {
             globalBest = episodeBest;
         }
@@ -123,16 +135,46 @@ export const findBestFit = async (
     return globalBest;
 }
 
-const fetchMore = async (offset: number):
- Promise<Array<Skill>> => dataset.skills;
+export default async (request: DetermineSkillRequest):
+    Promise<DetermineSkillResponse> => {
+    const startTime = Date.now();
 
-export default async (request: any): Promise<any> => {
-    console.log('request', request)
-    const d = await findBestFit(fetchMore, 2, request.Message as string)
-    console.log('best fit!', d);
+    const ids: Array<string> = (await skillQueries.
+        selectAllSkillIds()).
+        map((x) => x.id);
+
+    const fetchMore = async (): Promise<Array<Skill>> => {
+        const currentId = ids.pop();
+        const examples = await exampleQueries.selectExampleById({
+            id: currentId,
+        });
+
+        return [{
+            id: currentId,
+            examples: examples.map((x: any) => ({
+                group: x['subset_id'],
+                plainWords: x['plain_words'].split(','),
+                pos: x.pos.split(','),
+                features: x.features.split(','),
+            })) as Array<ResolverValueSet>,
+        } as Skill]
+    }
+
+    const bestFit = await findBestFit(
+        fetchMore,
+        ids.length,
+        request.Message as string);
+
+    const resp = (await skillQueries.selectForwardAddressByID({
+        id: bestFit.setId,
+    }))[0];
+
+    console.log(resp)
+
     return ({
-        Accuracy: 1.2,
-        Duration: 1.2,
-        ForwardAddress: 'http://site.com',
+        Accuracy: bestFit.confidence,
+        Duration: Date.now() - startTime, // ms
+        ForwardAddress: resp ? resp['forward_address'] : null,
+        SubsetID: bestFit.setId,
     });
 }

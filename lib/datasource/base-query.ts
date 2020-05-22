@@ -9,7 +9,7 @@ export default async (query: string): Promise<any> => {
 
     return new Promise((promiseRes: any, rej: any) => {
         client.query(query, (err: any, res: any) => {
-            (err) ? rej(err) : promiseRes(res);
+            (err) ? rej(err) : promiseRes(res.rows);
 
             client.end()
         })

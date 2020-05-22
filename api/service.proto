@@ -11,6 +11,7 @@ message SkillDeterminationResponse {
     float Accuracy = 1;
     float Duration = 2;
     string ForwardAddress = 3;
+    string SubsetID = 4;
 }
  
 message SkillDeterminationRequest {

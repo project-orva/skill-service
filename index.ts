@@ -8,12 +8,18 @@ import RegisterCurrentInstance, {
     RegisterResponse,
 } from './lib/rpcs/register-current-instance';
 import RpcHandler from './lib/utils/rpc-handler';
+import config from './lib/config';
+
+// import seed from './lib/datasource/seed';
+// seed();
 
 const PROTO_PATH = __dirname + '/api/service.proto';
 
 const rpc: Rpc = GenerateRPC({
     protoPath: PROTO_PATH,
 } as RpcConfig);
+
+config();
 
 function getServer() {
     const server = new grpc.Server();

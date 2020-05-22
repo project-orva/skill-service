@@ -1,6 +1,6 @@
 import baseQuery from './base-query';
 
-export interface Skill {
+export interface SkillDatasource {
     id: string,
     name: string,
     forwardAddress: string,
@@ -23,8 +23,13 @@ export const createTable = () => baseQuery(
 export const selectForwardAddressByID = async (
     variables: any,
 ): Promise<any> => baseQuery(
-    `SELECT FORWARD_ADDRESS WHERE ID='${variables.id}' from SKILL`,
+    `SELECT FORWARD_ADDRESS FROM SKILL WHERE ID='${variables.id}'`,
 );
+
+export const selectAllSkillIds = async ():
+    Promise<Array<{ id: string }>> => baseQuery(
+        `SELECT ID FROM SKILL`,
+    );
 
 export const insertSkill = (
     variables: any,
