@@ -3,19 +3,21 @@ syntax = "proto3";
 package grpcSkill;
 
 service grpcSkill {
-    rpc RegisterCurrentInstance(RegisterRequest) returns(RegisterResponse) {}
-    rpc DetermineSkillFromMessage(SkillDeterminationRequest) returns(SkillDeterminationResponse) {}
+    rpc RegisterSkill(RegisterRequest) returns(RegisterResponse) {}
+    rpc ProxySkillRequest(ProxyRequest) returns(ProxyResponse) {}
 }
 
-message SkillDeterminationResponse {
-    float Accuracy = 1;
-    float Duration = 2;
-    string ForwardAddress = 3;
-    string SubsetID = 4;
+message ProxyResponse {
+    string Statement =2;
+    string AssignedFrom = 3;
+    string GraphicURL = 4;
+    int32 GraphicType =5;
+    string Error =6;
 }
- 
-message SkillDeterminationRequest {
+
+message ProxyRequest {
     string Message = 1;
+    string TransactionID = 2;
 }
 
 message SkillInfo {

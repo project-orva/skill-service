@@ -1,7 +1,7 @@
 import grpc from 'grpc';
 
 import GenerateRPC, { Rpc, RpcConfig } from './lib/utils/generate-rpc';
-import DetermineSkill from './lib/rpcs/determine-skill';
+import ProxySkill from './lib/rpcs/proxy-skill';
 
 import RegisterCurrentInstance, {
     RegisterRequest,
@@ -24,7 +24,7 @@ config();
 function getServer() {
     const server = new grpc.Server();
     server.addService(rpc.serviceGuide.service, {
-        determineSkillFromMessage: RpcHandler(DetermineSkill),
+        determineSkillFromMessage: RpcHandler(ProxySkill),
         registerCurrentInstance:
             RpcHandler<RegisterRequest, RegisterResponse>(
                 RegisterCurrentInstance),

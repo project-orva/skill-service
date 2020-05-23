@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package grpcSKillSession; 
+
+service grpcSKillSession {
+    rpc HandleSession(SessionRequest) returns(SessionResponse) {} 
+}
+
+message SessionRequest{ 
+    string TransactionID = 1;
+    string SubsetID = 2;
+}
+
+message SessionResponse {
+    string Statement = 1;
+    string AssignedFrom = 2;
+    string GraphicURL = 3;
+    string GraphicType = 4;
+    string Error = 5;
+}

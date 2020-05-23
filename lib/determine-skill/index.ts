@@ -1,6 +1,8 @@
 import {
     Skill,
-} from './determine-skill.types';
+    DetermineSkillRequest,
+    DetermineSkillResponse,
+} from './types';
 import {
     ResolverValueSet,
     ResolvedConfidence,
@@ -12,17 +14,6 @@ import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
 import { skillQueries, exampleQueries } from '../datasource';
-
-interface DetermineSkillRequest {
-    Message: string,
-}
-
-interface DetermineSkillResponse {
-    Accuracy: number,
-    Duration: number,
-    ForwardAddress: string,
-    SubsetID: string,
-}
 
 const resolver = featureResolver([eaba]);
 
@@ -114,8 +105,6 @@ export const findBestFit = async (
             }),
         );
 
-        console.log('resolved requests', resolvedRequests)
-
         // determine the best fit of the episode
         const episodeBest: ResolvedEpisode = resolvedRequests.reduce((
             a: ResolvedEpisode, set: ResolvedEpisode,
@@ -124,7 +113,6 @@ export const findBestFit = async (
                 ? set
                 : a;
         }, { confidence: 0, score: 0 } as ResolvedEpisode);
-        console.log('compare!', globalBest, episodeBest)
         if (isScoredHigher(globalBest, episodeBest)) {
             globalBest = episodeBest;
         }
@@ -163,18 +151,16 @@ export default async (request: DetermineSkillRequest):
     const bestFit = await findBestFit(
         fetchMore,
         ids.length,
-        request.Message as string);
+        request.message as string);
 
     const resp = (await skillQueries.selectForwardAddressByID({
         id: bestFit.setId,
     }))[0];
 
-    console.log(resp)
-
     return ({
-        Accuracy: bestFit.confidence,
-        Duration: Date.now() - startTime, // ms
-        ForwardAddress: resp ? resp['forward_address'] : null,
-        SubsetID: bestFit.setId,
+        accuracy: bestFit.confidence,
+        duration: Date.now() - startTime, // ms
+        forwardAddress: resp ? resp['forward_address'] : null,
+        subsetID: bestFit.setId,
     });
 }
