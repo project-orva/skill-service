@@ -21,8 +21,9 @@ const createClient = (protoPath, serviceURL, name) => {
 };
 
 const request = async (client, message) => await new Promise((resolve, reject) => {
-    client['DetermineSkillFromMessage']({
+    client['ProxySkillRequest']({
       Message: message,
+      TransactionID: 'text123'
     },
     (err, res) => {
       if (err) reject(err);

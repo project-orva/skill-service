@@ -51,23 +51,24 @@ const resolveCurrentSet = async (
             ...resolved,
         ], [] as Array<ConfidenceResponse>);
 
+    const beg = bestGroup(scores)
+
     return {
-        score: average(scores.map(
-            (x: ConfidenceResponse) => x.sum)),
-        confidence: average(scores.map(
-            (x: ConfidenceResponse) => x.confidence)),
-        groupBestFit: bestGroup(scores).toString(),
+        score: beg.sum,
+        confidence: beg.confidence,
+        groupBestFit: beg.group.toString(),
     }
 }
 
-export const bestGroup = (scores: Array<ConfidenceResponse>) => scores.reduce(
-    (a, c) => {
-        if (c.sum >= a.sum && c.confidence >= a.confidence) {
-            return c
-        }
+export const bestGroup = (scores: Array<ConfidenceResponse>):
+    ConfidenceResponse => scores.reduce(
+        (a, c) => {
+            if (c.sum >= a.sum && c.confidence >= a.confidence) {
+                return c
+            }
 
-        return a
-    }, { sum: 0, confidence: 0 } as ConfidenceResponse).group;
+            return a
+        }, { sum: 0, confidence: 0 } as ConfidenceResponse);
 
 const isScoredHigher = (
     base: ResolvedEpisode, comparer: ResolvedEpisode,
@@ -161,6 +162,6 @@ export default async (request: DetermineSkillRequest):
         accuracy: bestFit.confidence,
         duration: Date.now() - startTime, // ms
         forwardAddress: resp ? resp['forward_address'] : null,
-        subsetID: bestFit.setId,
+        subsetID: bestFit.groupBestFit,
     });
 }

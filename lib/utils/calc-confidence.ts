@@ -10,10 +10,11 @@ export default (
 
     const sum = values.reduce((a: number, c: number) => a + c);
     const maxSum = values.length * maxScore;
+    console.log("conf", values, sum, maxScore, maxSum / sum)
 
     return {
         sum,
-        confidence: sum / maxSum,
+        confidence: maxSum / sum,
         group: 'na',
     };
 };
