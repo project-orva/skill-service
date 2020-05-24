@@ -1,6 +1,6 @@
 import {
     findBestFit, bestGroup,
-} from './determine-skill';
+} from './index';
 
 import dataset from '../../datasets/skills_example.json';
 import { ConfidenceResponse, ProcessedSkill } from '../common/types';
@@ -14,7 +14,7 @@ describe('determine skill', () => {
                 { sum: 2, confidence: 0, group: '2' },
             ] as Array<ConfidenceResponse>);
 
-            expect(resp).toEqual('2')
+            expect(resp.group).toEqual('2')
         })
     })
     describe('findBestFit', () => {
@@ -27,6 +27,17 @@ describe('determine skill', () => {
 
                 expect(response.setId).toEqual('0')
                 expect(response.groupBestFit).toEqual('1')
+            })
+    })
+    xdescribe('playground', () => {
+        it('should do stuff',
+            async () => {
+                const fetchMore = async (offset: number) => dataset.skills;
+                const response = await findBestFit(
+                    fetchMore, dataset.skills.length, 'turn on the light computer',
+                )
+
+                expect(response).toEqual({})
             })
     })
 })

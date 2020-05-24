@@ -21,7 +21,7 @@ const createClient = (protoPath, serviceURL, name) => {
 };
 
 const request = async (client, message) => await new Promise((resolve, reject) => {
-    client['ProxySkillRequest']({
+    client['ProcessSkillRequest']({
       Message: message,
       TransactionID: 'text123'
     },

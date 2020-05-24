@@ -4,18 +4,15 @@ package grpcSkill;
 
 service grpcSkill {
     rpc RegisterSkill(RegisterRequest) returns(RegisterResponse) {}
-    rpc ProxySkillRequest(ProxyRequest) returns(ProxyResponse) {}
+    rpc ProcessSkillRequest(ProcessRequest) returns(ProcessResponse) {}
 }
 
-message ProxyResponse {
-    string Statement =2;
-    string AssignedFrom = 3;
-    string GraphicURL = 4;
-    int32 GraphicType =5;
-    string Error =6;
+message ProcessResponse {
+    string ForwardAddress = 1;
+    string SubsetID = 2;
 }
 
-message ProxyRequest {
+message ProcessRequest {
     string Message = 1;
     string TransactionID = 2;
 }

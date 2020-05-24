@@ -24,7 +24,7 @@ config();
 function getServer() {
     const server = new grpc.Server();
     server.addService(rpc.serviceGuide.service, {
-        proxySkillRequest: RpcHandler(ProxySkill),
+        processSkillRequest: RpcHandler(ProxySkill),
         registerSkill:
             RpcHandler<RegisterRequest, RegisterResponse>(
                 RegisterCurrentInstance),

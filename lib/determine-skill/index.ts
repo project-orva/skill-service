@@ -114,6 +114,7 @@ export const findBestFit = async (
                 ? set
                 : a;
         }, { confidence: 0, score: 0 } as ResolvedEpisode);
+
         if (isScoredHigher(globalBest, episodeBest)) {
             globalBest = episodeBest;
         }
