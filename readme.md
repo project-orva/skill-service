@@ -9,4 +9,3 @@ We are using gRPC for both registering skills to the service and making predicti
 ## Road map
 - Support for batch predictions; preprocessing for context. 
 - Setup ci pipeline + Docker
-- Integrate into existing SDK 
