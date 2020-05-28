@@ -6,6 +6,7 @@ import { createPOSMapping } from '../utils/pos';
 import { extractFeatures } from '../utils';
 
 export interface RegisterRequest {
+    SkillID: string,
     SkillName: string,
     ForwardAddress: string,
     ForwardType: number,
@@ -20,20 +21,18 @@ export interface RegisterResponse {
 }
 
 interface Transformation {
-    skill: skillQueries.Skill,
+    skill: skillQueries.SkillDatasource,
     examples: Array<exampleQueries.Example>
 }
 
 export const transformRequest = (request: RegisterRequest): Transformation => {
-    const skillId = uuid();
-
     const skill = {
-        id: skillId,
+        id: request.SkillID,
         name: request.SkillName,
         forwardAddress: request.ForwardAddress,
         forwardType: request.ForwardType,
         lastUpdated: ~~(Date.now() / 1000),
-    } as skillQueries.Skill;
+    } as skillQueries.SkillDatasource;
 
     const examples = request.Examples.map((example: {
         ExampleText: string,
@@ -41,7 +40,7 @@ export const transformRequest = (request: RegisterRequest): Transformation => {
     }) => {
         const posMap = createPOSMapping(example.ExampleText)
         return ({
-            skillId,
+            skillId: request.SkillID,
             id: uuid(),
             subsetId: example.GroupID,
             plainWords: posMap.plainWords,
@@ -57,15 +56,17 @@ export const transformRequest = (request: RegisterRequest): Transformation => {
 }
 
 export default async (request: RegisterRequest): Promise<RegisterResponse> => {
-    const transformedRequest = transformRequest(request);
+    const { skill, examples } = transformRequest(request);
 
     try {
-        await skillQueries.insertSkill(transformedRequest.skill);
-
-        await exampleQueries.insertExamples({ examples: request.Examples });
+        await Promise.all([
+            skillQueries.upsertSkill(skill),
+            exampleQueries.insertExamples({ examples }),
+        ]);
 
         return { IsRegistered: true } as RegisterResponse;
     } catch (err) {
+        console.log(err)
         return { IsRegistered: false } as RegisterResponse;
     }
 }

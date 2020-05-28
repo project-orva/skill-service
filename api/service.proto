@@ -24,9 +24,10 @@ message SkillInfo {
 
 message RegisterRequest {
     string SkillName = 1;
-    repeated SkillInfo Examples = 2; 
-    string ForwardAddress = 3;
-    int32 ForwardType = 4;
+    string SkillID = 2;
+    repeated SkillInfo Examples = 3; 
+    string ForwardAddress = 4;
+    int32 ForwardType = 5;
 }
 
 message RegisterResponse {
