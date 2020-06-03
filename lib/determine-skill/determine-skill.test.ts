@@ -1,5 +1,5 @@
 import {
-    findBestFit, bestGroup,
+    applyComparision, bestGroup,
 } from './index';
 
 import dataset from '../../datasets/skills_example.json';
@@ -17,27 +17,19 @@ describe('determine skill', () => {
             expect(resp.group).toEqual('2')
         })
     })
-    describe('findBestFit', () => {
-        it('should find the best fit provided a valid dataset',
-            async () => {
-                const fetchMore = async (offset: number) => dataset.skills;
-                const response = await findBestFit(
-                    fetchMore, dataset.skills.length, 'turn on light',
-                )
+    describe('sortResolvedComparisions', () => {
+        it('correctly sort the resolved comparisions', () => {
 
-                expect(response.setId).toEqual('0')
-                expect(response.groupBestFit).toEqual('1')
-            })
+        })
     })
-    xdescribe('playground', () => {
-        it('should do stuff',
-            async () => {
-                const fetchMore = async (offset: number) => dataset.skills;
-                const response = await findBestFit(
-                    fetchMore, dataset.skills.length, 'turn on the light computer',
-                )
+    describe('applyComparision', () => {
+        it('correctly applies comparisions', async () => {
+            const fetchMore = async (offset: number) => dataset.skills;
+            const response = await applyComparision(
+                fetchMore, dataset.skills.length, 2, 'turn on light',
+            )
 
-                expect(response).toEqual({})
-            })
+            expect(response).toEqual([]);
+        })
     })
 })

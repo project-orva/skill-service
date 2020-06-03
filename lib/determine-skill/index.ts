@@ -1,9 +1,4 @@
 import {
-    Skill,
-    DetermineSkillRequest,
-    DetermineSkillResponse,
-} from './types';
-import {
     ResolverValueSet,
     ResolvedConfidence,
     ResolvedEpisode,
@@ -14,6 +9,12 @@ import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
 import { skillQueries, exampleQueries } from '../datasource';
+
+import {
+    Skill,
+    DetermineSkillRequest,
+    DetermineSkillResponse,
+} from './types';
 
 const resolver = featureResolver([eaba]);
 
@@ -70,28 +71,23 @@ export const bestGroup = (scores: Array<ConfidenceResponse>):
             return a
         }, { sum: 0, confidence: 0 } as ConfidenceResponse);
 
-const isScoredHigher = (
-    base: ResolvedEpisode, comparer: ResolvedEpisode,
-): boolean => (
-        comparer.score > base.score && comparer.confidence > base.confidence
-    );
-
-export const findBestFit = async (
+export const applyComparision = async (
     requestMore: (offset: number) => Promise<Array<Skill>>,
     count: number,
+    batchSize: number,
     rpcMessage: string,
-): Promise<ResolvedEpisode> => {
+): Promise<Array<ResolvedEpisode>> => {
     const comparerSet = constructComparerSet(rpcMessage);
 
     let offset = 0;
-    let globalBest = { confidence: 0, score: 0 } as ResolvedEpisode;
+    let resolvedRequests: Array<ResolvedEpisode> = [];
+
+    console.log('stuff', offset, ~~(count / batchSize))
 
     // score each groups of features
-    while (offset < count) {
+    while (offset < ~~(count / batchSize)) {
         const requests = await requestMore(offset);
-
-        // resolve all of the sets within our request "episode"
-        const resolvedRequests: Array<ResolvedEpisode> = await Promise.all(
+        const resolved = await Promise.all(
             requests.map(async (set): Promise<ResolvedEpisode> => {
                 const resolvedSet = await resolveCurrentSet(
                     comparerSet, set.examples,
@@ -106,24 +102,18 @@ export const findBestFit = async (
             }),
         );
 
-        // determine the best fit of the episode
-        const episodeBest: ResolvedEpisode = resolvedRequests.reduce((
-            a: ResolvedEpisode, set: ResolvedEpisode,
-        ): ResolvedEpisode => {
-            return isScoredHigher(a, set)
-                ? set
-                : a;
-        }, { confidence: 0, score: 0 } as ResolvedEpisode);
-
-        if (isScoredHigher(globalBest, episodeBest)) {
-            globalBest = episodeBest;
-        }
-
-        offset += 50;
+        console.log(resolved)
+        resolvedRequests = resolvedRequests.concat(resolved);
+        offset += 1;
     }
 
-    return globalBest;
+    return resolvedRequests;
 }
+
+export const sortResolvedComparisions = (
+    comparisions: Array<ResolvedEpisode>,
+): Array<ResolvedEpisode> => comparisions.sort(
+    (a, b) => a.confidence - b.confidence);
 
 export default async (request: DetermineSkillRequest):
     Promise<DetermineSkillResponse> => {
@@ -150,19 +140,21 @@ export default async (request: DetermineSkillRequest):
         } as Skill]
     }
 
-    const bestFit = await findBestFit(
+    const compared = await applyComparision(
         fetchMore,
         ids.length,
-        request.message as string);
+        request.message);
 
-    const resp = (await skillQueries.selectForwardAddressByID({
-        id: bestFit.setId,
-    }))[0];
+    const sortedComparion = sortResolvedComparisions(compared);
 
-    return ({
-        accuracy: bestFit.confidence,
-        duration: Date.now() - startTime, // ms
-        forwardAddress: resp ? resp['forward_address'] : null,
-        subsetID: bestFit.groupBestFit,
-    });
+    // const resp = (await skillQueries.selectForwardAddressByID({
+    //     id: bestFit.setId,
+    // }))[0];
+
+    // return ({
+    //     accuracy: bestFit.confidence,
+    //     duration: Date.now() - startTime, // ms
+    //     forwardAddress: resp ? resp['forward_address'] : null,
+    //     subsetID: bestFit.groupBestFit,
+    // });
 }
