@@ -1,9 +1,12 @@
 import {
-    applyComparision, bestGroup,
+    applyComparision,
+    bestGroup,
+    sortResolvedComparisions,
+    fitComparisions,
 } from './index';
 
 import dataset from '../../datasets/skills_example.json';
-import { ConfidenceResponse, ProcessedSkill } from '../common/types';
+import { ConfidenceResponse } from '../common/types';
 
 describe('determine skill', () => {
     describe('bestGroup', () => {
@@ -18,8 +21,34 @@ describe('determine skill', () => {
         })
     })
     describe('sortResolvedComparisions', () => {
-        it('correctly sort the resolved comparisions', () => {
+        it('correctly sorts the resolved comparisions', () => {
+            const response = sortResolvedComparisions([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                score: 80,
+                setId: '1',
+            }])
 
+            expect(response).toEqual([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                normalized: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                normalized: 80,
+                score: 80,
+                setId: '1',
+            }])
         })
     })
     describe('applyComparision', () => {
@@ -29,7 +58,47 @@ describe('determine skill', () => {
                 fetchMore, dataset.skills.length, 2, 'turn on light',
             )
 
-            expect(response).toEqual([]);
+            expect(response).toEqual([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                score: 80,
+                setId: '1',
+            },
+            ]);
+        })
+    })
+    describe('fitComparisions', () => {
+        it('fits comparisions', () => {
+            const resp = fitComparisions([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                normalized: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                normalized: 80,
+                score: 80,
+                setId: '1',
+            }])
+
+            expect(resp).toEqual([
+                {
+                    confidence: 1,
+                    groupBestFit: "1",
+                    normalized: 160,
+                    score: 160,
+                    setId: "0",
+                },
+            ])
         })
     })
 })

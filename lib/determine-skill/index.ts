@@ -1,10 +1,11 @@
 import {
     ResolverValueSet,
     ResolvedConfidence,
+    NormalizedResolvedEpisode,
     ResolvedEpisode,
     ConfidenceResponse,
 } from '../common/types';
-import { extractFeatures, average } from '../utils';
+import { extractFeatures, finalReduce } from '../utils';
 import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
@@ -82,8 +83,6 @@ export const applyComparision = async (
     let offset = 0;
     let resolvedRequests: Array<ResolvedEpisode> = [];
 
-    console.log('stuff', offset, ~~(count / batchSize))
-
     // score each groups of features
     while (offset < ~~(count / batchSize)) {
         const requests = await requestMore(offset);
@@ -102,7 +101,6 @@ export const applyComparision = async (
             }),
         );
 
-        console.log(resolved)
         resolvedRequests = resolvedRequests.concat(resolved);
         offset += 1;
     }
@@ -110,14 +108,41 @@ export const applyComparision = async (
     return resolvedRequests;
 }
 
+export const normalizeResolved = (
+    resolved: ResolvedEpisode,
+) => resolved.score / resolved.confidence;
+
 export const sortResolvedComparisions = (
     comparisions: Array<ResolvedEpisode>,
-): Array<ResolvedEpisode> => comparisions.sort(
-    (a, b) => a.confidence - b.confidence);
+): Array<NormalizedResolvedEpisode> => comparisions.
+    map(x => ({ ...x, normalized: normalizeResolved(x) })).
+    sort((a, b) => b.normalized - a.normalized);
+
+export const predictComparisions = (
+    normalized: Array<NormalizedResolvedEpisode>,
+): Array<ResolvedEpisode> => {
+    const fits: Array<ResolvedEpisode> = [];
+
+    if (normalized[0].confidence < 1) {
+        return fits;
+    }
+
+    return finalReduce(normalized, (a, c, final) => {
+        if (a.length === 0) {
+            return [c];
+        }
+
+        if (c.normalized - a[a.length - 1] <= (c.normalized / 40)) {
+            return [...a, c];
+        }
+
+        return final()
+    });
+}
 
 export default async (request: DetermineSkillRequest):
     Promise<DetermineSkillResponse> => {
-    const startTime = Date.now();
+    const startTime = Date.now() / 1000;
 
     const ids: Array<string> = (await skillQueries.
         selectAllSkillIds()).
@@ -143,18 +168,29 @@ export default async (request: DetermineSkillRequest):
     const compared = await applyComparision(
         fetchMore,
         ids.length,
-        request.message);
+        1,
+        request.message,
+    );
 
     const sortedComparion = sortResolvedComparisions(compared);
+    const fits = predictComparisions(sortedComparion);
 
-    // const resp = (await skillQueries.selectForwardAddressByID({
-    //     id: bestFit.setId,
-    // }))[0];
+    // @@ doing it this way so in the future we can have access to the rest
+    // of the predictions. might provide some insight at one point.
+    const [bestFit] = fits;
 
-    // return ({
-    //     accuracy: bestFit.confidence,
-    //     duration: Date.now() - startTime, // ms
-    //     forwardAddress: resp ? resp['forward_address'] : null,
-    //     subsetID: bestFit.groupBestFit,
-    // });
+    if (fits.length === 0) {
+        return {} as DetermineSkillResponse;
+    }
+
+    const resp = (await skillQueries.selectForwardAddressByID({
+        id: bestFit.setId,
+    }))[0];
+
+    return ({
+        accuracy: bestFit.confidence,
+        duration: Date.now() - startTime, // ms
+        forwardAddress: resp ? resp['forward_address'] : null,
+        subsetID: bestFit.groupBestFit,
+    });
 }
