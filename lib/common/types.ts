@@ -44,3 +44,7 @@ export interface ResolverContext {
 export interface ResolvedEpisode extends ResolvedConfidence {
     setId: string,
 }
+
+export interface NormalizedResolvedEpisode extends ResolvedEpisode {
+    normalized: number,
+}

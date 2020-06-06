@@ -1,19 +1,21 @@
 import {
-    Skill,
-    DetermineSkillRequest,
-    DetermineSkillResponse,
-} from './types';
-import {
     ResolverValueSet,
     ResolvedConfidence,
+    NormalizedResolvedEpisode,
     ResolvedEpisode,
     ConfidenceResponse,
 } from '../common/types';
-import { extractFeatures, average } from '../utils';
+import { extractFeatures, finalReduce } from '../utils';
 import { createPOSMapping } from '../utils/pos';
 import featureResolver from '../feature-resolvers';
 import eaba from '../feature-resolvers/eaba';
 import { skillQueries, exampleQueries } from '../datasource';
+
+import {
+    Skill,
+    DetermineSkillRequest,
+    DetermineSkillResponse,
+} from './types';
 
 const resolver = featureResolver([eaba]);
 
@@ -70,28 +72,21 @@ export const bestGroup = (scores: Array<ConfidenceResponse>):
             return a
         }, { sum: 0, confidence: 0 } as ConfidenceResponse);
 
-const isScoredHigher = (
-    base: ResolvedEpisode, comparer: ResolvedEpisode,
-): boolean => (
-        comparer.score > base.score && comparer.confidence > base.confidence
-    );
-
-export const findBestFit = async (
+export const applyComparision = async (
     requestMore: (offset: number) => Promise<Array<Skill>>,
     count: number,
+    batchSize: number,
     rpcMessage: string,
-): Promise<ResolvedEpisode> => {
+): Promise<Array<ResolvedEpisode>> => {
     const comparerSet = constructComparerSet(rpcMessage);
 
     let offset = 0;
-    let globalBest = { confidence: 0, score: 0 } as ResolvedEpisode;
+    let resolvedRequests: Array<ResolvedEpisode> = [];
 
     // score each groups of features
-    while (offset < count) {
+    while (offset < ~~(count / batchSize)) {
         const requests = await requestMore(offset);
-
-        // resolve all of the sets within our request "episode"
-        const resolvedRequests: Array<ResolvedEpisode> = await Promise.all(
+        const resolved = await Promise.all(
             requests.map(async (set): Promise<ResolvedEpisode> => {
                 const resolvedSet = await resolveCurrentSet(
                     comparerSet, set.examples,
@@ -106,28 +101,48 @@ export const findBestFit = async (
             }),
         );
 
-        // determine the best fit of the episode
-        const episodeBest: ResolvedEpisode = resolvedRequests.reduce((
-            a: ResolvedEpisode, set: ResolvedEpisode,
-        ): ResolvedEpisode => {
-            return isScoredHigher(a, set)
-                ? set
-                : a;
-        }, { confidence: 0, score: 0 } as ResolvedEpisode);
-
-        if (isScoredHigher(globalBest, episodeBest)) {
-            globalBest = episodeBest;
-        }
-
-        offset += 50;
+        resolvedRequests = resolvedRequests.concat(resolved);
+        offset += 1;
     }
 
-    return globalBest;
+    return resolvedRequests;
+}
+
+export const normalizeResolved = (
+    resolved: ResolvedEpisode,
+) => resolved.score / resolved.confidence;
+
+export const sortResolvedComparisions = (
+    comparisions: Array<ResolvedEpisode>,
+): Array<NormalizedResolvedEpisode> => comparisions.
+    map(x => ({ ...x, normalized: normalizeResolved(x) })).
+    sort((a, b) => b.normalized - a.normalized);
+
+export const predictComparisions = (
+    normalized: Array<NormalizedResolvedEpisode>,
+): Array<ResolvedEpisode> => {
+    const fits: Array<ResolvedEpisode> = [];
+
+    if (normalized[0].confidence < 1) {
+        return fits;
+    }
+
+    return finalReduce(normalized, (a, c, final) => {
+        if (a.length === 0) {
+            return [c];
+        }
+
+        if (c.normalized - a[a.length - 1] <= (c.normalized / 40)) {
+            return [...a, c];
+        }
+
+        return final()
+    });
 }
 
 export default async (request: DetermineSkillRequest):
     Promise<DetermineSkillResponse> => {
-    const startTime = Date.now();
+    const startTime = Date.now() / 1000;
 
     const ids: Array<string> = (await skillQueries.
         selectAllSkillIds()).
@@ -150,10 +165,23 @@ export default async (request: DetermineSkillRequest):
         } as Skill]
     }
 
-    const bestFit = await findBestFit(
+    const compared = await applyComparision(
         fetchMore,
         ids.length,
-        request.message as string);
+        1,
+        request.message,
+    );
+
+    const sortedComparion = sortResolvedComparisions(compared);
+    const fits = predictComparisions(sortedComparion);
+
+    // @@ doing it this way so in the future we can have access to the rest
+    // of the predictions. might provide some insight at one point.
+    const [bestFit] = fits;
+
+    if (fits.length === 0) {
+        return {} as DetermineSkillResponse;
+    }
 
     const resp = (await skillQueries.selectForwardAddressByID({
         id: bestFit.setId,

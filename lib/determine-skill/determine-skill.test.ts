@@ -1,9 +1,12 @@
 import {
-    findBestFit, bestGroup,
+    applyComparision,
+    bestGroup,
+    sortResolvedComparisions,
+    fitComparisions,
 } from './index';
 
 import dataset from '../../datasets/skills_example.json';
-import { ConfidenceResponse, ProcessedSkill } from '../common/types';
+import { ConfidenceResponse } from '../common/types';
 
 describe('determine skill', () => {
     describe('bestGroup', () => {
@@ -17,27 +20,85 @@ describe('determine skill', () => {
             expect(resp.group).toEqual('2')
         })
     })
-    describe('findBestFit', () => {
-        it('should find the best fit provided a valid dataset',
-            async () => {
-                const fetchMore = async (offset: number) => dataset.skills;
-                const response = await findBestFit(
-                    fetchMore, dataset.skills.length, 'turn on light',
-                )
+    describe('sortResolvedComparisions', () => {
+        it('correctly sorts the resolved comparisions', () => {
+            const response = sortResolvedComparisions([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                score: 80,
+                setId: '1',
+            }])
 
-                expect(response.setId).toEqual('0')
-                expect(response.groupBestFit).toEqual('1')
-            })
+            expect(response).toEqual([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                normalized: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                normalized: 80,
+                score: 80,
+                setId: '1',
+            }])
+        })
     })
-    xdescribe('playground', () => {
-        it('should do stuff',
-            async () => {
-                const fetchMore = async (offset: number) => dataset.skills;
-                const response = await findBestFit(
-                    fetchMore, dataset.skills.length, 'turn on the light computer',
-                )
+    describe('applyComparision', () => {
+        it('correctly applies comparisions', async () => {
+            const fetchMore = async (offset: number) => dataset.skills;
+            const response = await applyComparision(
+                fetchMore, dataset.skills.length, 2, 'turn on light',
+            )
 
-                expect(response).toEqual({})
-            })
+            expect(response).toEqual([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                score: 80,
+                setId: '1',
+            },
+            ]);
+        })
+    })
+    describe('fitComparisions', () => {
+        it('fits comparisions', () => {
+            const resp = fitComparisions([{
+                confidence: 1,
+                groupBestFit: '1',
+                score: 160,
+                normalized: 160,
+                setId: '0',
+            },
+            {
+                confidence: 1,
+                groupBestFit: '1',
+                normalized: 80,
+                score: 80,
+                setId: '1',
+            }])
+
+            expect(resp).toEqual([
+                {
+                    confidence: 1,
+                    groupBestFit: "1",
+                    normalized: 160,
+                    score: 160,
+                    setId: "0",
+                },
+            ])
+        })
     })
 })

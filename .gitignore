@@ -1,5 +1,4 @@
 .ipynb_checkpoints
 node_modules
-lib/config
 test/integration/node_modules
 .env

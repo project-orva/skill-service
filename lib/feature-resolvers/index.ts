@@ -8,7 +8,7 @@ const scoreResolvers = async (
     resolvers: Array<Resolver>,
     { exampleSet, comparerSet }:
         { exampleSet: ResolverValueSet, comparerSet: ResolverValueSet },
-): Promise<Array<ConfidenceResponse>> => await Promise.all(resolvers
+): Promise<Array<ConfidenceResponse>> => Promise.all(resolvers
     .map(async (resolver) => {
         const { confidence, sum } = await resolver({
             exampleSet,
@@ -19,7 +19,7 @@ const scoreResolvers = async (
             sum,
             confidence,
             group: exampleSet.group,
-        }
+        } as ConfidenceResponse;
     }));
 
 type Resolver = (ctx: ResolverContext) => Promise<ConfidenceResponse>;
